@@ -18,7 +18,7 @@ A beginner-friendly web application that corrects grammar with Python Flask and 
 - Python 3.11+
 - Flask
 - boto3
-- Amazon Bedrock Runtime API
+- Amazon Bedrock Runtime Converse API
 - HTML
 - CSS
 - Gunicorn for production serving
@@ -68,11 +68,11 @@ The default model is:
 amazon.nova-micro-v1:0
 ```
 
-This project uses the Amazon Nova `InvokeModel` request and response format. If you switch to a different model family, update the request body and response parser in `app.py` to match that model's native Bedrock format.
+This project uses the Bedrock Runtime `Converse` API. You can use another Bedrock text/chat model that supports Converse by changing `BEDROCK_MODEL_ID`.
 
 Helpful AWS docs:
 
-- Bedrock Runtime `invoke_model`: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-runtime/client/invoke_model.html
+- Bedrock Runtime `converse`: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-runtime/client/converse.html
 - Amazon Nova model parameters: https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-nova.html
 - Elastic Beanstalk Python platform: https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create-deploy-python-flask.html
 
@@ -193,7 +193,7 @@ eb create grammar-corrector-env
 Set environment variables:
 
 ```bash
-eb setenv AWS_REGION=us-east-1 BEDROCK_MODEL_ID=amazon.nova-micro-v1:0 BEDROCK_MAX_TOKENS=1000 BEDROCK_TEMPERATURE=0.2
+eb setenv AWS_REGION=us-east-1 BEDROCK_MODEL_ID=amazon.nova-micro-v1:0 BEDROCK_MAX_TOKENS=1000 BEDROCK_TEMPERATURE=0.2 BEDROCK_READ_TIMEOUT=3600
 ```
 
 Deploy:

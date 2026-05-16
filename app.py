@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 from functools import lru_cache
@@ -87,7 +86,7 @@ def get_bedrock_client():
         region_name=region_name,
         config=Config(
             connect_timeout=10,
-            read_timeout=int(os.getenv("BEDROCK_READ_TIMEOUT", "60")),
+            read_timeout=int(os.getenv("BEDROCK_READ_TIMEOUT", "3600")),
             retries={"max_attempts": 3, "mode": "standard"},
         ),
     )
@@ -96,30 +95,23 @@ def get_bedrock_client():
 def correct_grammar(text):
     """Send user text to Amazon Bedrock and return the corrected grammar."""
     model_id = os.getenv("BEDROCK_MODEL_ID", DEFAULT_MODEL_ID)
-    prompt = f"{PROMPT_PREFIX}\n\n{text}\n\nReturn only the corrected text."
-
-    request_body = {
-        "messages": [
-            {
-                "role": "user",
-                "content": [{"text": prompt}],
-            }
-        ],
-        "inferenceConfig": {
-            "maxTokens": int(os.getenv("BEDROCK_MAX_TOKENS", "1000")),
-            "temperature": float(os.getenv("BEDROCK_TEMPERATURE", "0.2")),
-        },
-    }
 
     try:
-        response = get_bedrock_client().invoke_model(
+        response = get_bedrock_client().converse(
             modelId=model_id,
-            body=json.dumps(request_body),
-            contentType="application/json",
-            accept="application/json",
+            system=[{"text": f"{PROMPT_PREFIX} Return only the corrected text."}],
+            messages=[
+                {
+                    "role": "user",
+                    "content": [{"text": text}],
+                }
+            ],
+            inferenceConfig={
+                "maxTokens": int(os.getenv("BEDROCK_MAX_TOKENS", "1000")),
+                "temperature": float(os.getenv("BEDROCK_TEMPERATURE", "0.2")),
+            },
         )
-        response_body = json.loads(response["body"].read())
-        corrected_text = extract_text_from_response(response_body)
+        corrected_text = extract_text_from_response(response)
     except (NoCredentialsError, PartialCredentialsError) as exc:
         logger.warning("AWS credentials are missing or incomplete: %s", exc)
         raise GrammarCorrectionError(
@@ -129,7 +121,7 @@ def correct_grammar(text):
         logger.exception("Amazon Bedrock returned an error")
         message = exc.response.get("Error", {}).get("Message", "Amazon Bedrock request failed.")
         raise GrammarCorrectionError(f"Amazon Bedrock error: {message}") from exc
-    except (BotoCoreError, KeyError, json.JSONDecodeError, TypeError) as exc:
+    except (BotoCoreError, KeyError, TypeError) as exc:
         logger.exception("Unable to complete the Bedrock request")
         raise GrammarCorrectionError(
             "Could not correct the text right now. Please check your Bedrock configuration."
@@ -142,7 +134,7 @@ def correct_grammar(text):
 
 
 def extract_text_from_response(response_body):
-    """Extract generated text from the Amazon Nova InvokeModel response."""
+    """Extract generated text from a Bedrock Runtime Converse response."""
     content_blocks = response_body.get("output", {}).get("message", {}).get("content", [])
 
     for block in content_blocks:
