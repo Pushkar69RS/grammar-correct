@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Grammar Corrector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="page-shell">
+        <section class="app-panel" aria-labelledby="page-title">
+            <div class="heading-row">
+                <div>
+                    <p class="eyebrow">AWS Bedrock + Flask</p>
+                    <h1 id="page-title">AI Grammar Corrector</h1>
+                </div>
+                <span class="status-pill">Ready</span>
+            </div>
+
+            <form class="editor-form" method="POST" id="grammar-form">
+                <label for="text">Text</label>
+                <textarea
+                    id="text"
+                    name="text"
+                    maxlength="{{ max_input_chars }}"
+                    placeholder="She go to school every days."
+                    required
+                >{{ original_text }}</textarea>
+                <div class="form-footer">
+                    <span class="hint">Maximum {{ max_input_chars }} characters</span>
+                    <button type="submit" id="submit-button">
+                        <span class="button-text">Correct Grammar</span>
+                        <span class="button-loading" aria-hidden="true">Working...</span>
+                    </button>
+                </div>
+            </form>
+
+            {% if error_message %}
+                <div class="alert alert-error" role="alert">
+                    {{ error_message }}
+                </div>
+            {% endif %}
+
+            <section class="result-area" aria-labelledby="result-title">
+                <div class="result-header">
+                    <h2 id="result-title">Corrected Text</h2>
+                </div>
+                <div class="result-box">
+                    {% if corrected_text %}
+                        <p>{{ corrected_text }}</p>
+                    {% else %}
+                        <p class="empty-state">Your corrected text will appear here.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script>
+        const form = document.getElementById("grammar-form");
+        const button = document.getElementById("submit-button");
+
+        form.addEventListener("submit", () => {
+            button.classList.add("is-loading");
+            button.disabled = true;
+        });
+    </script>
+</body>
+</html>

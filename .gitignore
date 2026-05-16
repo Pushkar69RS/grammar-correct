@@ -64,6 +64,12 @@ db.sqlite3-journal
 # Flask stuff:
 instance/
 .webassets-cache
+.flask-*.log
+
+# Elastic Beanstalk
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
 
 # Scrapy stuff:
 .scrapy
